@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Page Status Bar",
+  "version": "1.0",
+  "description": "Permanent bottom status bar showing link/image counts, image info on hover, and link URLs on hover.",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ]
+}
