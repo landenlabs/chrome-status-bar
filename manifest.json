@@ -1,12 +1,36 @@
 {
   "manifest_version": 3,
   "name": "Page Status Bar",
-  "version": "1.0",
-  "description": "Permanent bottom status bar showing link/image counts, image info on hover, and link URLs on hover.",
+  "version": "1.1",
+  "description": "Permanent status bar (top or bottom) showing link/image counts, image info on hover, and link URLs on hover.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    },
+    "default_title": "Page Status Bar"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_idle",
       "all_frames": false
     }

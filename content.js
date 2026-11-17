@@ -1,4 +1,4 @@
-// Page Status Bar - permanent bottom bar with link/image counts and hover info.
+// Page Status Bar - permanent top/bottom bar with link/image counts and hover info.
 (() => {
   const HOST_ID = '__page-status-bar-host';
   if (window.top !== window || document.getElementById(HOST_ID)) return;
@@ -11,7 +11,7 @@
   const host = document.createElement('div');
   host.id = HOST_ID;
   host.style.cssText =
-    `all:initial;position:fixed;left:0;right:0;bottom:0;height:${BAR_HEIGHT}px;` +
+    `all:initial;position:fixed;left:0;right:0;height:${BAR_HEIGHT}px;` +
     'z-index:2147483647;display:block;';
   const root = host.attachShadow({ mode: 'closed' });
   root.innerHTML = `
@@ -19,7 +19,7 @@
       .bar {
         box-sizing: border-box; height: ${BAR_HEIGHT}px; width: 100%;
         display: flex; align-items: center; gap: 12px; padding: 0 8px;
-        background: #1f2328; color: #e6edf3; border-top: 1px solid #444c56;
+        background: #1f2328; color: #e6edf3; border: 0 solid #444c56;
         font: ${FONT}; line-height: ${BAR_HEIGHT}px; white-space: nowrap;
         overflow: hidden; cursor: default; user-select: none;
       }
@@ -30,6 +30,8 @@
       .url { flex: 1 1 0; min-width: 0; overflow: hidden; color: #79c0ff; }
       .info.has-img .img { max-width: 65%; }
       .url.src { color: #a5d6a7; }
+      :host([data-pos="bottom"]) .bar { border-top-width: 1px; }
+      :host([data-pos="top"]) .bar { border-bottom-width: 1px; }
     </style>
     <div class="bar">
       <span class="counts"></span>
@@ -39,12 +41,25 @@
   const infoEl = root.querySelector('.info');
   const imgEl = root.querySelector('.img');
   const urlEl = root.querySelector('.url');
-  document.documentElement.appendChild(host);
 
   // Keep page content from being hidden behind the bar.
   const pad = document.createElement('style');
-  pad.textContent = `html { padding-bottom: ${BAR_HEIGHT}px !important; }`;
-  (document.head || document.documentElement).appendChild(pad);
+
+  // ---------- Position (top/bottom), stored in chrome.storage.sync ----------
+  function applyPosition(pos) {
+    pos = pos === 'top' ? 'top' : 'bottom';
+    host.setAttribute('data-pos', pos);
+    host.style.top = pos === 'top' ? '0' : 'auto';
+    host.style.bottom = pos === 'bottom' ? '0' : 'auto';
+    pad.textContent = `html { padding-${pos}: ${BAR_HEIGHT}px !important; }`;
+    if (!host.isConnected) document.documentElement.appendChild(host);
+    if (!pad.isConnected) (document.head || document.documentElement).appendChild(pad);
+  }
+  // The bar is attached once the stored setting is known, so it doesn't jump.
+  chrome.storage.sync.get({ position: 'bottom' }, (s) => applyPosition(s && s.position));
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'sync' && changes.position) applyPosition(changes.position.newValue);
+  });
 
   // ---------- Counts ----------
   let countTimer = null;
@@ -64,7 +79,7 @@
 
   // Re-attach if a page script wipes our element out.
   new MutationObserver(() => {
-    if (!host.isConnected) document.documentElement.appendChild(host);
+    if (!host.isConnected && host.hasAttribute('data-pos')) document.documentElement.appendChild(host);
   }).observe(document.documentElement, { childList: true });
 
   // ---------- Text measurement + middle truncation ----------
