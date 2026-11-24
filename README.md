@@ -15,12 +15,31 @@ Adds a permanent status bar to the top (or bottom) of every page showing:
 The bar is rendered inside a closed shadow root so page CSS can't affect it
 (and it can't affect the page). It only runs in the top-level frame.
 
+## Screenshots
+
+Hovering a link shows its target URL, next to the page's link and image counts:
+
+![Status bar showing a hovered link URL](screens/screen-1.png)
+
+Hovering an image shows its natural and displayed size, alt text and source:
+
+![Status bar showing hovered image info](screens/screen-2.png)
+
+Hovering a video (here an embedded YouTube player) shows its resolution,
+displayed size, duration, format and play state:
+
+![Status bar showing hovered video info](screens/screen-3.png)
+
 ## Settings
 
 Open the options (right-click the extension icon → **Options**, or
 `chrome://extensions` → **Details** → **Extension options**) to choose whether
 the bar sits at the **top** (default) or **bottom** of the page. Open tabs
 update right away.
+
+| Extension menu | Options |
+| --- | --- |
+| ![Extension icon menu with Options](screens/menu.png) | ![Options page with status bar position](screens/settings.png) |
 
 Note: Chrome's own link-hover URL bubble (bottom-left of the window) can't be
 hidden or moved by an extension. Putting this bar at the top keeps the two from
