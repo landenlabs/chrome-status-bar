@@ -30,6 +30,16 @@ displayed size, duration, format and play state:
 
 ![Status bar showing hovered video info](screens/screen-3.png)
 
+Clicking **Links** on the bar opens a tab listing every link on the page (text
+and URL), with a filter box:
+
+![List of links opened from the status bar](screens/list-of-links.png)
+
+Clicking **Images** opens a tab listing every image (alt text, size, type and
+URL), with a filter box:
+
+![List of images opened from the status bar](screens/image-links.png)
+
 ## Settings
 
 Open the options (right-click the extension icon → **Options**, or
