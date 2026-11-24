@@ -11,6 +11,9 @@ Adds a permanent status bar to the top (or bottom) of every page showing:
   format; links to YouTube, Vimeo and similar sites show the site and, when the
   page prints it in the link, the duration.
 - The target URL when hovering over a link.
+- A **»** button at the right end that collapses the bar to a small tab on the
+  right edge (giving the page its space back); click **«** to bring it back.
+  The choice is remembered and applies to all tabs.
 
 The bar is rendered inside a closed shadow root so page CSS can't affect it
 (and it can't affect the page). It only runs in the top-level frame.
@@ -75,7 +78,7 @@ overlapping.
   relays video info from iframes to the bar.
 - `list.html` / `list.js` — the link/image list page.
 - `options.html` / `options.js` — settings page (bar position, saved in
-  `chrome.storage.sync`).
+  `chrome.storage.sync`, along with the collapsed state).
 - `icons/` — `icon.svg` (48/128 px) and `icon-small.svg` (16/32 px) sources,
   plus the rendered `icon16/32/48/128.png` used by the manifest.
 - `docs/privacy.html` — privacy policy, published with GitHub Pages.

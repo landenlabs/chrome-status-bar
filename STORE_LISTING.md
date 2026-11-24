@@ -51,7 +51,7 @@ DESIGNED NOT TO GET IN THE WAY
 
 PRIVACY FIRST
 
-Page Status Bar collects no data. Nothing is tracked, logged or sent anywhere, and everything runs locally in your browser. The only thing it saves is your top/bottom preference, kept in Chrome's built-in sync storage. When you open a link or image list, that list is held in memory only until you close its tab. It needs access to all sites only so it can show the bar on every page you visit.
+Page Status Bar collects no data. Nothing is tracked, logged or sent anywhere, and everything runs locally in your browser. The only things it saves are your top/bottom preference and whether the bar is collapsed, kept in Chrome's built-in sync storage. When you open a link or image list, that list is held in memory only until you close its tab. It needs access to all sites only so it can show the bar on every page you visit.
 
 GREAT FOR
 

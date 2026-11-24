@@ -44,6 +44,18 @@
       .url.src { color: #a5d6a7; }
       :host([data-pos="bottom"]) .bar { border-top-width: 1px; }
       :host([data-pos="top"]) .bar { border-bottom-width: 1px; }
+      .toggle {
+        all: unset; flex: 0 0 auto; box-sizing: border-box; height: 18px; width: 18px;
+        text-align: center; border-radius: 4px; color: #9da7b3;
+        font: ${FONT}; line-height: 18px; cursor: pointer;
+      }
+      .toggle:hover { background: #30363d; color: #e6edf3; }
+      .toggle:focus-visible { outline: 1px solid #79c0ff; }
+      /* Collapsed: only the toggle stays, as a small tab on the right edge. */
+      :host([data-collapsed]) .counts, :host([data-collapsed]) .info { display: none; }
+      :host([data-collapsed]) .bar { width: auto; padding: 0 2px; border-left-width: 1px; }
+      :host([data-collapsed][data-pos="top"]) .bar { border-bottom-left-radius: 6px; }
+      :host([data-collapsed][data-pos="bottom"]) .bar { border-top-left-radius: 6px; }
     </style>
     <div class="bar">
       <span class="counts">
@@ -51,30 +63,53 @@
         <button type="button" class="images" title="List all images in a new tab">Images: <b>0</b></button>
       </span>
       <span class="info"><span class="img"></span><span class="url"></span></span>
+      <button type="button" class="toggle"></button>
     </div>`;
   const linksBtn = root.querySelector('button.links');
   const imagesBtn = root.querySelector('button.images');
   const infoEl = root.querySelector('.info');
   const imgEl = root.querySelector('.img');
   const urlEl = root.querySelector('.url');
+  const toggleBtn = root.querySelector('button.toggle');
 
   // Keep page content from being hidden behind the bar.
   const pad = document.createElement('style');
 
-  // ---------- Position (top/bottom), stored in chrome.storage.sync ----------
+  // ---------- Position (top/bottom) and collapsed state, stored in chrome.storage.sync ----------
   let barPos = null;
+  let collapsed = false;
   function applyPosition(pos) {
     pos = pos === 'bottom' ? 'bottom' : 'top';
     if (barPos && barPos !== pos) restoreShifted();
     barPos = pos;
-    host.setAttribute('data-pos', pos);
-    host.style.top = pos === 'top' ? '0' : 'auto';
-    host.style.bottom = pos === 'bottom' ? '0' : 'auto';
-    pad.textContent = `html { padding-${pos}: ${BAR_HEIGHT}px !important; }`;
+    layout();
+  }
+  function applyCollapsed(c) {
+    collapsed = !!c;
+    if (barPos) layout();
+  }
+  function layout() {
+    host.setAttribute('data-pos', barPos);
+    host.toggleAttribute('data-collapsed', collapsed);
+    host.style.top = barPos === 'top' ? '0' : 'auto';
+    host.style.bottom = barPos === 'bottom' ? '0' : 'auto';
+    host.style.left = collapsed ? 'auto' : '0'; // collapsed: shrink to a tab on the right
+    toggleBtn.textContent = collapsed ? '\u00ab' : '\u00bb'; // « expand, » collapse
+    toggleBtn.title = collapsed ? 'Show the status bar' : 'Hide the status bar';
+    // Collapsed: give the page its space back and undo the fixed-element offsets.
+    pad.textContent = collapsed ? '' : `html { padding-${barPos}: ${BAR_HEIGHT}px !important; }`;
     if (!host.isConnected) document.documentElement.appendChild(host);
     if (!pad.isConnected) (document.head || document.documentElement).appendChild(pad);
-    shiftFixed();
+    if (collapsed) restoreShifted(); else shiftFixed();
   }
+  toggleBtn.addEventListener('click', () => {
+    applyCollapsed(!collapsed);
+    try {
+      chrome.storage.sync.set({ collapsed });
+    } catch {
+      // Extension was reloaded; the change applies to this page only.
+    }
+  });
 
   // ---------- Push fixed/sticky page elements out from under the bar ----------
   // Padding on <html> moves normal content, but fixed and sticky elements (site
@@ -90,7 +125,7 @@
   }
   function shiftFixed() {
     shiftTimer = null;
-    if (!barPos || !document.body) return;
+    if (!barPos || collapsed || !document.body) return;
     const prop = barPos; // 'top' or 'bottom'
     for (const el of shifted.keys()) if (!el.isConnected) shifted.delete(el);
     for (const el of document.body.querySelectorAll('*')) {
@@ -118,9 +153,14 @@
   });
 
   // The bar is attached once the stored setting is known, so it doesn't jump.
-  chrome.storage.sync.get({ position: 'top' }, (s) => applyPosition(s && s.position));
+  chrome.storage.sync.get({ position: 'top', collapsed: false }, (s) => {
+    collapsed = !!(s && s.collapsed);
+    applyPosition(s && s.position);
+  });
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === 'sync' && changes.position) applyPosition(changes.position.newValue);
+    if (area !== 'sync') return;
+    if (changes.collapsed) applyCollapsed(changes.collapsed.newValue);
+    if (changes.position) applyPosition(changes.position.newValue);
   });
 
   // ---------- Counts ----------
