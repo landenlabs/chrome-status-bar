@@ -68,6 +68,17 @@ overlapping.
   `chrome.storage.sync`).
 - `icons/` — `icon.svg` (48/128 px) and `icon-small.svg` (16/32 px) sources,
   plus the rendered `icon16/32/48/128.png` used by the manifest.
+- `docs/privacy.html` — privacy policy, published with GitHub Pages.
+
+## Privacy
+
+Page Status Bar collects no data. Nothing is tracked, logged or sent anywhere;
+everything runs locally in your browser. The only thing saved is the top/bottom
+setting (in `chrome.storage.sync`), and link/image lists are kept in memory only
+until their tab closes.
+
+Privacy policy: <https://landenlabs.github.io/chrome-status-bar/privacy.html>
+(source: [docs/privacy.html](docs/privacy.html))
 
 ## Author
 
