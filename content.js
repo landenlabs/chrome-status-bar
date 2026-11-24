@@ -1,7 +1,12 @@
+// Copyright LanDen Labs - Dennis Lang 2026
+// Source: https://github.com/landenlabs/chrome-status-bar
+// Author: https://landenlabs.com
+// Licensed under the Apache License, Version 2.0 (see LICENSE).
 // Page Status Bar - permanent top/bottom bar with link/image counts and hover info.
 (() => {
   const HOST_ID = '__page-status-bar-host';
-  if (window.top !== window || document.getElementById(HOST_ID)) return;
+  if (window.top !== window || document.getElementById(HOST_ID)) return; // frames: see frame.js
+  const { imageType, videoInfo, findVideo, VIDEO_EVENTS } = PSB_MEDIA;
 
   const BAR_HEIGHT = 22;
   const FONT = '12px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
@@ -23,7 +28,14 @@
         font: ${FONT}; line-height: ${BAR_HEIGHT}px; white-space: nowrap;
         overflow: hidden; cursor: default; user-select: none;
       }
-      .counts { flex: 0 0 auto; color: #9da7b3; }
+      .counts { flex: 0 0 auto; display: flex; gap: 4px; }
+      .counts button {
+        all: unset; box-sizing: border-box; height: 18px; padding: 0 6px;
+        border: 1px solid #444c56; border-radius: 4px; color: #9da7b3;
+        font: ${FONT}; line-height: 16px; cursor: pointer;
+      }
+      .counts button:hover { background: #30363d; border-color: #768390; }
+      .counts button:focus-visible { outline: 1px solid #79c0ff; }
       .counts b { color: #e6edf3; font-weight: 600; }
       .info { flex: 1 1 auto; min-width: 0; display: flex; gap: 10px; overflow: hidden; }
       .img { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: #f2cc60; }
@@ -34,10 +46,14 @@
       :host([data-pos="top"]) .bar { border-bottom-width: 1px; }
     </style>
     <div class="bar">
-      <span class="counts"></span>
+      <span class="counts">
+        <button type="button" class="links" title="List all links in a new tab">Links: <b>0</b></button>
+        <button type="button" class="images" title="List all images in a new tab">Images: <b>0</b></button>
+      </span>
       <span class="info"><span class="img"></span><span class="url"></span></span>
     </div>`;
-  const countsEl = root.querySelector('.counts');
+  const linksBtn = root.querySelector('button.links');
+  const imagesBtn = root.querySelector('button.images');
   const infoEl = root.querySelector('.info');
   const imgEl = root.querySelector('.img');
   const urlEl = root.querySelector('.url');
@@ -46,17 +62,63 @@
   const pad = document.createElement('style');
 
   // ---------- Position (top/bottom), stored in chrome.storage.sync ----------
+  let barPos = null;
   function applyPosition(pos) {
-    pos = pos === 'top' ? 'top' : 'bottom';
+    pos = pos === 'bottom' ? 'bottom' : 'top';
+    if (barPos && barPos !== pos) restoreShifted();
+    barPos = pos;
     host.setAttribute('data-pos', pos);
     host.style.top = pos === 'top' ? '0' : 'auto';
     host.style.bottom = pos === 'bottom' ? '0' : 'auto';
     pad.textContent = `html { padding-${pos}: ${BAR_HEIGHT}px !important; }`;
     if (!host.isConnected) document.documentElement.appendChild(host);
     if (!pad.isConnected) (document.head || document.documentElement).appendChild(pad);
+    shiftFixed();
   }
+
+  // ---------- Push fixed/sticky page elements out from under the bar ----------
+  // Padding on <html> moves normal content, but fixed and sticky elements (site
+  // headers, nav bars, cookie banners) are placed relative to the viewport, so
+  // they would still sit under the bar. Offset the ones touching the bar's edge.
+  const shifted = new Map(); // el -> { prop, value, priority } (original inline style)
+  function restoreShifted() {
+    for (const [el, o] of shifted) {
+      if (o.value) el.style.setProperty(o.prop, o.value, o.priority);
+      else el.style.removeProperty(o.prop);
+    }
+    shifted.clear();
+  }
+  function shiftFixed() {
+    shiftTimer = null;
+    if (!barPos || !document.body) return;
+    const prop = barPos; // 'top' or 'bottom'
+    for (const el of shifted.keys()) if (!el.isConnected) shifted.delete(el);
+    for (const el of document.body.querySelectorAll('*')) {
+      if (shifted.has(el)) continue;
+      const cs = getComputedStyle(el);
+      if (cs.position !== 'fixed' && cs.position !== 'sticky') continue;
+      if (cs.display === 'none') continue;
+      const v = parseFloat(cs[prop]);
+      if (!(v >= 0 && v < BAR_HEIGHT)) continue; // 'auto' -> NaN, skipped
+      shifted.set(el, {
+        prop,
+        value: el.style.getPropertyValue(prop),
+        priority: el.style.getPropertyPriority(prop),
+      });
+      el.style.setProperty(prop, `${v + BAR_HEIGHT}px`, 'important');
+    }
+  }
+  let shiftTimer = null;
+  function scheduleShift() {
+    if (!shiftTimer) shiftTimer = setTimeout(shiftFixed, 1000);
+  }
+  // Pages add headers late or switch them to fixed via a class change on scroll.
+  new MutationObserver(scheduleShift).observe(document.documentElement, {
+    childList: true, subtree: true, attributes: true, attributeFilter: ['class'],
+  });
+
   // The bar is attached once the stored setting is known, so it doesn't jump.
-  chrome.storage.sync.get({ position: 'bottom' }, (s) => applyPosition(s && s.position));
+  chrome.storage.sync.get({ position: 'top' }, (s) => applyPosition(s && s.position));
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === 'sync' && changes.position) applyPosition(changes.position.newValue);
   });
@@ -67,7 +129,8 @@
     countTimer = null;
     const links = document.links.length;   // <a href> and <area href>
     const images = document.images.length; // <img>
-    countsEl.innerHTML = `Links: <b>${links}</b> &nbsp; Images: <b>${images}</b>`;
+    linksBtn.querySelector('b').textContent = links;
+    imagesBtn.querySelector('b').textContent = images;
   }
   function scheduleCounts() {
     if (!countTimer) countTimer = setTimeout(updateCounts, 500);
@@ -76,6 +139,53 @@
   new MutationObserver(scheduleCounts).observe(document.documentElement, {
     childList: true, subtree: true, attributes: true, attributeFilter: ['href', 'src'],
   });
+
+  // ---------- Lists (opened in a new tab by background.js) ----------
+  const clean = (s) => (s || '').replace(/\s+/g, ' ').trim();
+  // Long data: URLs (inline images) would bloat storage; keep only their start.
+  const shortUrl = (u) => (u.startsWith('data:') && u.length > 300 ? u.slice(0, 300) + ELLIPSIS : u);
+
+  function linkText(a) {
+    let t = clean(a.textContent) || clean(a.getAttribute('aria-label')) || clean(a.getAttribute('title'));
+    if (!t) {
+      const img = a.querySelector('img[alt]');
+      if (img && clean(img.alt)) t = `[image] ${clean(img.alt)}`;
+      else if (a.querySelector('img, svg')) t = '[image]';
+    }
+    return t;
+  }
+
+  function collectLinks() {
+    return Array.from(document.links, (a) => ({ text: linkText(a), url: shortUrl(linkHref(a)) }));
+  }
+
+  function collectImages() {
+    return Array.from(document.images, (img) => {
+      const parts = [];
+      if (img.naturalWidth) parts.push(`${img.naturalWidth}×${img.naturalHeight}`);
+      else parts.push(img.complete ? 'broken' : 'not loaded');
+      const type = imageType(img.currentSrc || img.src || '');
+      if (type) parts.push(type);
+      return {
+        text: clean(img.getAttribute('alt')) || clean(img.getAttribute('title')),
+        info: parts.join(' · '),
+        url: shortUrl(img.currentSrc || img.src || ''),
+      };
+    });
+  }
+
+  function openList(kind) {
+    const items = kind === 'images' ? collectImages() : collectLinks();
+    try {
+      chrome.runtime.sendMessage({
+        type: 'open-list', kind, items, pageUrl: location.href, pageTitle: document.title,
+      });
+    } catch {
+      // Extension was reloaded; this page's copy of the script is orphaned until refresh.
+    }
+  }
+  linksBtn.addEventListener('click', () => openList('links'));
+  imagesBtn.addEventListener('click', () => openList('images'));
 
   // Re-attach if a page script wipes our element out.
   new MutationObserver(() => {
@@ -123,18 +233,6 @@
     return `${(n / 1024 / 1024).toFixed(2)} MB`;
   }
 
-  function imageType(src) {
-    if (src.startsWith('data:')) {
-      const m = /^data:image\/([\w.+-]+)/i.exec(src);
-      return m ? m[1].toUpperCase() : 'DATA';
-    }
-    if (src.startsWith('blob:')) return 'BLOB';
-    try {
-      const m = /\.([a-z0-9]{2,5})$/i.exec(new URL(src).pathname);
-      return m ? m[1].toUpperCase() : '';
-    } catch { return ''; }
-  }
-
   function imageBytes(src) {
     if (src.startsWith('data:')) {
       const i = src.indexOf(',');
@@ -167,8 +265,45 @@
     return { text: 'Image ' + parts.join(' · '), src };
   }
 
+  // ---------- Video ----------
+  const VIDEO_EXT = /\.(mp4|m4v|webm|mov|mkv|avi|ogv|flv|wmv|mpe?g|3gp|m3u8|mpd)$/i;
+
+  // Video sites whose page links can be recognised from the URL alone.
+  function videoSite(u) {
+    const h = u.hostname.replace(/^(www|m|music)\./, '');
+    const p = u.pathname;
+    if ((h === 'youtube.com' || h === 'youtube-nocookie.com') &&
+        (p === '/watch' || /^\/(shorts|embed|live)\//.test(p))) return 'YouTube';
+    if (h === 'youtu.be' && p.length > 1) return 'YouTube';
+    if ((h === 'vimeo.com' || h === 'player.vimeo.com') && /\/\d+/.test(p)) return 'Vimeo';
+    if ((h === 'dailymotion.com' && p.startsWith('/video/')) || h === 'dai.ly') return 'Dailymotion';
+    if (h === 'tiktok.com' && p.includes('/video/')) return 'TikTok';
+    if (h === 'twitch.tv' && p.includes('/videos/')) return 'Twitch';
+    return '';
+  }
+
+  // A link to a video: only what the URL (and the page around it) tells us,
+  // nothing is downloaded. Search results and thumbnails usually print the
+  // duration inside the link, so pick that up for video-site links.
+  function videoLinkInfo(link, url) {
+    let u;
+    try { u = new URL(url); } catch { return ''; }
+    const m = VIDEO_EXT.exec(u.pathname);
+    if (m) {
+      const ext = m[1].toLowerCase();
+      const kind = ext === 'm3u8' ? 'HLS stream' : ext === 'mpd' ? 'DASH stream' : ext.toUpperCase();
+      return `Video link · ${kind}`;
+    }
+    const site = videoSite(u);
+    if (!site) return '';
+    const parts = [`Video link · ${site}`];
+    const d = /(?:^|\s)((?:\d{1,2}:)?\d{1,2}:\d{2})(?=\s|$)/.exec(link.innerText || '');
+    if (d) parts.push(d[1]);
+    return parts.join(' · ');
+  }
+
   // ---------- Hover rendering ----------
-  let current = null; // { img, link }
+  let current = null; // { img, video, link } or { frame: { text, src } } from frame.js
 
   function render() {
     infoEl.classList.remove('has-img');
@@ -178,35 +313,41 @@
     urlEl.title = '';
     if (!current) return;
 
-    const { img, link } = current;
+    const { img, video, link, frame } = current;
     let url = '';
     let prefix = '';
-    if (img) {
-      const info = imageInfo(img);
-      imgEl.textContent = info.text;
+    const media = frame || (img ? imageInfo(img) : video ? videoInfo(video) : null);
+    if (media) {
+      imgEl.textContent = media.text;
       infoEl.classList.add('has-img');
       if (link) {
         url = linkHref(link);
         prefix = '→ ';
-      } else if (info.src && !info.src.startsWith('data:')) {
-        url = info.src;
+      } else if (media.src && !/^(data|blob):/i.test(media.src)) {
+        url = media.src;
         prefix = 'src: ';
         urlEl.classList.add('src');
       }
     } else if (link) {
       url = linkHref(link);
+      const vl = videoLinkInfo(link, url);
+      if (vl) {
+        imgEl.textContent = vl;
+        infoEl.classList.add('has-img');
+      }
     }
     if (!url) return;
 
     const shown = stripScheme(url);
     urlEl.title = url;
-    // Layout is synchronous: width available to the url span after the image text is placed.
+    // Layout is synchronous: width available to the url span after the media text is placed.
     const avail = urlEl.getBoundingClientRect().width - measure(prefix) - 2;
     urlEl.textContent = prefix + truncateMiddle(shown, avail);
   }
 
   function setCurrent(next) {
-    const same = (current && next && current.img === next.img && current.link === next.link) ||
+    const same = (current && next && !next.frame && current.img === next.img &&
+                  current.video === next.video && current.link === next.link) ||
                  (!current && !next);
     if (same) return;
     current = next;
@@ -214,15 +355,17 @@
   }
 
   document.addEventListener('mouseover', (e) => {
-    let img = null, link = null;
+    let img = null, video = null, link = null;
     for (const el of e.composedPath()) {
       if (!(el instanceof Element)) continue;
       if (el === host) return; // hovering the bar itself: leave info as is
-      if (!img && !link && el.localName === 'img') img = el;
+      if (!img && !video && !link && el.localName === 'img') img = el;
+      if (!img && !video && !link && el.localName === 'video') video = el;
       if (!link && (el.localName === 'a' || el.localName === 'area') && linkHref(el)) link = el;
       if (link) break;
     }
-    setCurrent(img || link ? { img, link } : null);
+    if (!img && !video) video = findVideo(e);
+    setCurrent(img || video || link ? { img, video, link } : null);
   }, true);
 
   document.documentElement.addEventListener('mouseleave', () => setCurrent(null));
@@ -231,4 +374,18 @@
   document.addEventListener('load', (e) => {
     if (current && current.img === e.target) render();
   }, true);
+  // Refresh video info as metadata arrives or playback state changes.
+  for (const type of VIDEO_EVENTS) {
+    document.addEventListener(type, (e) => {
+      if (current && current.video === e.target) render();
+    }, true);
+  }
+
+  // Videos inside iframes (e.g. embedded YouTube players) are reported by
+  // frame.js, relayed through background.js.
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (!msg || msg.type !== 'frame-video') return;
+    if (msg.info) setCurrent({ frame: { text: String(msg.info.text || ''), src: String(msg.info.src || '') } });
+    else if (current && current.frame) setCurrent(null);
+  });
 })();

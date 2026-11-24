@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- Copyright LanDen Labs - Dennis Lang 2026 | https://github.com/landenlabs/chrome-status-bar | https://landenlabs.com -->
 <html>
 <head>
   <meta charset="utf-8">
@@ -7,6 +8,8 @@
     body { font: 13px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; margin: 16px; min-width: 260px; }
     fieldset { border: 1px solid #ccc; border-radius: 6px; padding: 8px 12px; }
     label { display: block; margin: 4px 0; }
+    footer { margin-top: 12px; color: #666; font-size: 11px; }
+    footer a { color: #36c; }
     #saved { color: #2a7; margin-left: 8px; visibility: hidden; }
   </style>
 </head>
@@ -16,6 +19,11 @@
     <label><input type="radio" name="position" value="top"> Top of the page</label>
     <label><input type="radio" name="position" value="bottom"> Bottom of the page</label>
   </fieldset>
+  <footer>
+    Copyright LanDen Labs - Dennis Lang 2026<br>
+    <a href="https://github.com/landenlabs/chrome-status-bar" target="_blank" rel="noopener">Source on GitHub</a> ·
+    <a href="https://landenlabs.com" target="_blank" rel="noopener">landenlabs.com</a>
+  </footer>
   <script src="options.js"></script>
 </body>
 </html>

@@ -3,6 +3,7 @@
   "name": "Page Status Bar",
   "version": "1.1",
   "description": "Permanent status bar (top or bottom) showing link/image counts, image info on hover, and link URLs on hover.",
+  "homepage_url": "https://github.com/landenlabs/chrome-status-bar",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -19,6 +20,9 @@
   "permissions": [
     "storage"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "options_ui": {
     "page": "options.html",
     "open_in_tab": false
@@ -29,10 +33,12 @@
         "<all_urls>"
       ],
       "js": [
-        "content.js"
+        "media.js",
+        "content.js",
+        "frame.js"
       ],
       "run_at": "document_idle",
-      "all_frames": false
+      "all_frames": true
     }
   ]
 }

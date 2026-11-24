@@ -1,0 +1,90 @@
+<!doctype html>
+<!-- Copyright LanDen Labs - Dennis Lang 2026 | https://github.com/landenlabs/chrome-status-bar | https://landenlabs.com -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Page Status Bar – Privacy Policy</title>
+  <style>
+    body { font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #222; background: #fff;
+           max-width: 760px; margin: 0 auto; padding: 32px 20px 48px; }
+    h1 { font-size: 28px; margin: 0 0 4px; }
+    h2 { font-size: 19px; margin: 28px 0 8px; }
+    .updated { color: #666; margin: 0 0 24px; }
+    table { border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 15px; }
+    th, td { border: 1px solid #ddd; padding: 8px 10px; text-align: left; vertical-align: top; }
+    th { background: #f5f7f9; }
+    code { background: #f2f4f6; padding: 1px 5px; border-radius: 4px; font-size: 14px; }
+    a { color: #2f6fd6; }
+    footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #eee; color: #666; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>Page Status Bar – Privacy Policy</h1>
+  <p class="updated">Last updated: November 24, 2026</p>
+
+  <p>Page Status Bar is a Chrome extension by LanDen Labs (Dennis Lang). It adds a status bar to web pages
+  that shows how many links and images a page has, details about the image or video under the mouse pointer,
+  and the address of the link under the mouse pointer.</p>
+
+  <p><strong>In short: Page Status Bar does not collect, store, sell or share any personal or browsing data.
+  Everything it does happens locally in your browser.</strong></p>
+
+  <h2>Data the extension collects</h2>
+  <p>None. The extension does not send any information to the developer or to anyone else. It contains no
+  analytics, tracking, advertising or remote code, and it makes no network requests of its own.</p>
+
+  <h2>Information the extension reads on your device</h2>
+  <p>To show the status bar, the extension reads parts of the page you are viewing. This information is
+  displayed to you and is never transmitted anywhere.</p>
+  <table>
+    <tr><th>Information</th><th>Why it is used</th><th>Where it is kept</th></tr>
+    <tr>
+      <td>Links, images and videos on the current page (addresses, sizes, file types, alt text, playback state)</td>
+      <td>To show counts and hover details in the status bar</td>
+      <td>Not saved; read only while the page is open</td>
+    </tr>
+    <tr>
+      <td>The list of links or images, when you click “Links” or “Images” in the bar</td>
+      <td>To show the full list in a new tab</td>
+      <td>Chrome’s in-memory session storage (<code>chrome.storage.session</code>); deleted when the list tab
+      is closed, and cleared when the browser closes</td>
+    </tr>
+    <tr>
+      <td>Your status bar position setting (top or bottom)</td>
+      <td>To remember your choice</td>
+      <td>Chrome sync storage (<code>chrome.storage.sync</code>), which Chrome may sync between your own
+      signed-in browsers. The developer cannot access it.</td>
+    </tr>
+  </table>
+
+  <h2>Permissions</h2>
+  <ul>
+    <li><strong>Access to all sites</strong> – needed so the status bar can appear on every page you visit
+    and read the page’s links, images and videos, including videos embedded from other sites.</li>
+    <li><strong>Storage</strong> – used only for the position setting and the temporary link/image lists
+    described above.</li>
+  </ul>
+
+  <h2>Sharing and sale of data</h2>
+  <p>No user data is sold, transferred or shared with third parties, used for any purpose unrelated to the
+  extension’s single purpose, or used to determine creditworthiness or for lending.</p>
+
+  <h2>Removing your data</h2>
+  <p>Uninstalling the extension removes its saved setting. Temporary lists are removed automatically when
+  their tab or the browser is closed.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>If this policy changes, the updated version will be posted on this page with a new “Last updated” date.</p>
+
+  <h2>Contact</h2>
+  <p>Questions or concerns can be raised on the project’s issue tracker:
+  <a href="https://github.com/landenlabs/chrome-status-bar/issues">github.com/landenlabs/chrome-status-bar/issues</a>.
+  You can also visit <a href="https://landenlabs.com">landenlabs.com</a>.</p>
+
+  <footer>
+    Copyright LanDen Labs - Dennis Lang 2026 ·
+    <a href="https://github.com/landenlabs/chrome-status-bar">Source on GitHub</a>
+  </footer>
+</body>
+</html>
