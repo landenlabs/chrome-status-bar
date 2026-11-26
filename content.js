@@ -164,11 +164,15 @@
   });
 
   // ---------- Counts ----------
+  // 1x1 images are tracking pixels or lazy-load placeholders, not real content.
+  const isPixel = (img) => img.naturalWidth === 1 && img.naturalHeight === 1;
+  const realImages = () => Array.from(document.images).filter((img) => !isPixel(img));
+
   let countTimer = null;
   function updateCounts() {
     countTimer = null;
-    const links = document.links.length;   // <a href> and <area href>
-    const images = document.images.length; // <img>
+    const links = document.links.length; // <a href> and <area href>
+    const images = realImages().length;  // <img>, minus 1x1 pixels
     linksBtn.querySelector('b').textContent = links;
     imagesBtn.querySelector('b').textContent = images;
   }
@@ -200,7 +204,7 @@
   }
 
   function collectImages() {
-    return Array.from(document.images, (img) => {
+    return realImages().map((img) => {
       const parts = [];
       if (img.naturalWidth) parts.push(`${img.naturalWidth}×${img.naturalHeight}`);
       else parts.push(img.complete ? 'broken' : 'not loaded');
@@ -411,7 +415,9 @@
   document.documentElement.addEventListener('mouseleave', () => setCurrent(null));
   window.addEventListener('resize', render);
   // Refresh image info once a hovered image finishes loading.
+  // Also recount images: whether one is a 1x1 pixel is only known after it loads.
   document.addEventListener('load', (e) => {
+    if (e.target.localName === 'img') scheduleCounts();
     if (current && current.img === e.target) render();
   }, true);
   // Refresh video info as metadata arrives or playback state changes.

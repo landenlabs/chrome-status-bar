@@ -48,6 +48,7 @@ function render(data) {
     url.title = item.url;
     url.target = '_blank';
     url.rel = 'noopener noreferrer';
+    if (isImages) openWithReferer(url, data.pageUrl);
     row.appendChild(url);
 
     frag.appendChild(row);
@@ -55,6 +56,22 @@ function render(data) {
   });
   listEl.appendChild(frag);
   updateStatus();
+}
+
+// Image links are opened by background.js so the request carries the source
+// page as its Referer; many image hosts deny requests without it.
+function openWithReferer(a, pageUrl) {
+  if (!/^https?:/.test(a.href)) return;
+  const open = (e, background) => {
+    e.preventDefault();
+    chrome.runtime.sendMessage({ type: 'open-image', url: a.href, pageUrl, background });
+  };
+  a.addEventListener('click', (e) => {
+    if (e.button === 0) open(e, e.metaKey || e.ctrlKey);
+  });
+  a.addEventListener('auxclick', (e) => {
+    if (e.button === 1) open(e, true); // middle-click: background tab
+  });
 }
 
 function updateStatus() {
