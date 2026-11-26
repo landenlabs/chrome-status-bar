@@ -12,7 +12,16 @@ The **short summary** (max 132 characters) comes from `description` in
 ```text
 Page Status Bar
 
-See what's on a page at a glance. Page Status Bar adds a slim, always-visible status bar to the top or bottom of every web page. It shows how many links and images the page has, details about the image under your mouse, and the full address of any link you hover over.
+See what's on a page at a glance. Page Status Bar adds a slim, always-visible status bar to the top or bottom of every web page. It shows how many links and images the page has, details about the image or video under your mouse, and the full address of any link you hover over. Click the counts to see every link or image in a list, and collapse the bar whenever you want the space back.
+
+NEW IN VERSION 1.2
+
+• Clickable link count: click Links to open a list of every link on the page.
+• Clickable image count: click Images to open a list of every image on the page, with each image's address.
+• Collapsible bar: click » to shrink the bar to a small tab on the right edge, and « to bring it back.
+• Video details on hover: see the resolution, duration, format and play state of a video, including embedded players such as YouTube.
+• The bar now sits at the top of the page by default, clear of Chrome's own link preview bubble. You can still move it to the bottom in Options.
+• Fixed site headers and banners are moved out from under the bar.
 
 WHAT IT SHOWS
 
@@ -28,7 +37,7 @@ WHAT IT SHOWS
   – Its alt text, which is handy for accessibility checks
   – Its source URL, or where it links to if the image is a link
 
-• Video details on hover. Move the mouse over a video playing on the page, even one with player controls on top or one embedded from another site such as YouTube, to see:
+• Video details on hover. Move the mouse over a video on the page, even one with player controls on top or one embedded from another site such as YouTube, to see:
   – Its resolution (for example 1920×1080), and its displayed size if the page scales it
   – Its duration, or "live" for live streams
   – Its format (MP4, WEBM…, or "stream" for players like YouTube)
@@ -36,6 +45,10 @@ WHAT IT SHOWS
   Links to video files show the video format, and links to YouTube, Vimeo and similar sites show the site and the video's duration when the page lists it.
 
 • Link URLs on hover. Hover over any link to see its full destination. Long URLs are shortened in the middle, so you still see both the domain and the end of the path.
+
+COLLAPSE IT WHEN YOU DON'T NEED IT
+
+Click the » button at the right end of the bar to collapse it to a small tab on the right edge of the page. The page gets its full space back. Click « to show the bar again. Your choice is remembered and applies to all tabs.
 
 TOP OR BOTTOM, YOUR CHOICE
 
@@ -45,9 +58,9 @@ DESIGNED NOT TO GET IN THE WAY
 
 • Compact 22-pixel bar with a dark, easy-to-read theme
 • Isolated from page styles: websites can't break the bar's look, and the bar doesn't change the page's look
-• Adds matching padding so page content isn't hidden behind the bar
-• Runs only in the main page, not inside embedded frames or ads
-• Lightweight, with no background service running
+• Adds matching padding so page content isn't hidden behind the bar, and moves fixed site headers and banners out from under it
+• The bar appears only in the main page, never inside embedded frames or ads
+• Lightweight: nothing runs in the background except when you open a list or hover a video in an embedded player
 
 PRIVACY FIRST
 
@@ -55,7 +68,7 @@ Page Status Bar collects no data. Nothing is tracked, logged or sent anywhere, a
 
 GREAT FOR
 
-• Web developers and QA testers checking image sizes, formats and alt text
+• Web developers and QA testers checking image and video sizes, formats and alt text
 • SEO and content reviewers auditing links and images
 • Anyone who wants to see where a link goes before clicking it
 
