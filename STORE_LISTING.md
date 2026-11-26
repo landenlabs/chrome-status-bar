@@ -14,6 +14,13 @@ Page Status Bar
 
 See what's on a page at a glance. Page Status Bar adds a slim, always-visible status bar to the top or bottom of every web page. It shows how many links and images the page has, details about the image or video under your mouse, and the full address of any link you hover over. Click the counts to see every link or image in a list, and collapse the bar whenever you want the space back.
 
+NEW IN VERSION 1.3
+
+• Image viewer in the image list: click an image in the list to view it beside the list. Drag the divider to resize, use the up and down arrow keys to step through the images, and click the image to zoom.
+• Size filter in the image list: show only images at least a minimum size (64 pixels by default), and choose whether to include images whose size isn't known yet.
+• Tiny 1×1 images (tracking pixels and placeholders) are no longer counted or listed.
+• Images that refused to open from the list ("Referral Denied") now open, because the request names the page the image came from, as the page itself would.
+
 NEW IN VERSION 1.2
 
 • Clickable link count: click Links to open a list of every link on the page.

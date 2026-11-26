@@ -213,6 +213,9 @@
       return {
         text: clean(img.getAttribute('alt')) || clean(img.getAttribute('title')),
         info: parts.join(' · '),
+        // 0 = unknown (not loaded yet, broken, or no intrinsic size).
+        width: img.naturalWidth || 0,
+        height: img.naturalHeight || 0,
         url: shortUrl(img.currentSrc || img.src || ''),
       };
     });

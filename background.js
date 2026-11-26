@@ -31,7 +31,12 @@ chrome.runtime.onMessage.addListener((msg, sender) => {
       index: sender.tab.index + 1,
       openerTabId: sender.tab.id,
     }, (tab) => {
-      if (tab) chrome.storage.session.set({ [`tab-${tab.id}`]: id });
+      if (!tab) return;
+      chrome.storage.session.set({ [`tab-${tab.id}`]: id });
+      // The image viewer in the list page needs the same Referer as a new tab would.
+      if (data.kind === 'images' && /^https?:/.test(data.pageUrl)) {
+        setRefererRule(tab.id, data.pageUrl, null, ['image']).catch(() => {});
+      }
     });
   });
 });
@@ -57,23 +62,27 @@ async function openWithReferer(url, pageUrl, fromTab, background) {
   }
   // Create the tab blank first so the rule is in place before the request goes out.
   const tab = await chrome.tabs.create({ ...props, url: 'about:blank' });
-  await chrome.declarativeNetRequest.updateSessionRules({
-    removeRuleIds: [tab.id],
+  await setRefererRule(tab.id, pageUrl, [host], ['main_frame', 'image']);
+  chrome.tabs.update(tab.id, { url });
+}
+
+// One session rule per tab (rule id = tab id): send `referer` as the Referer
+// header for that tab's requests, optionally limited to some hosts.
+function setRefererRule(tabId, referer, hosts, resourceTypes) {
+  const condition = { tabIds: [tabId], resourceTypes };
+  if (hosts) condition.requestDomains = hosts;
+  return chrome.declarativeNetRequest.updateSessionRules({
+    removeRuleIds: [tabId],
     addRules: [{
-      id: tab.id,
+      id: tabId,
       priority: 1,
-      condition: {
-        tabIds: [tab.id],
-        requestDomains: [host],
-        resourceTypes: ['main_frame', 'image'],
-      },
+      condition,
       action: {
         type: 'modifyHeaders',
-        requestHeaders: [{ header: 'referer', operation: 'set', value: pageUrl }],
+        requestHeaders: [{ header: 'referer', operation: 'set', value: referer }],
       },
     }],
   });
-  chrome.tabs.update(tab.id, { url });
 }
 
 // Drop a list's data when its tab is closed, and any Referer rule for the tab.

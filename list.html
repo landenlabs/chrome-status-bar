@@ -6,23 +6,46 @@
   <title>Page Status Bar — list</title>
   <link rel="icon" href="icons/icon32.png">
   <style>
+    html, body { height: 100%; }
     body {
       font: 13px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      margin: 0; padding: 12px 16px 24px; color: #1f2328;
+      margin: 0; color: #1f2328;
+      display: flex; flex-direction: column;
     }
+    header { flex: 0 0 auto; padding: 12px 16px 0; }
     h1 { font-size: 16px; margin: 0 0 2px; }
     #source { color: #57606a; margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     #source a { color: #0969da; }
     .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
     #filter { flex: 0 1 320px; padding: 4px 8px; font: inherit; }
-    #status { color: #57606a; }
-    #list { border-top: 1px solid #d0d7de; }
-    /* One row per item, trimmed to the page width. */
+    .sizeFilter { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+    .sizeFilter[hidden] { display: none; }
+    .sizeFilter label { display: flex; align-items: center; gap: 4px; }
+    #minSize { width: 6ch; padding: 3px 4px; font: inherit; }
+    #status, .hint { color: #57606a; }
+    .hint { margin-left: auto; }
+
+    /* List on the left, draggable sash, image viewer on the right (images only). */
+    #split { flex: 1 1 auto; min-height: 0; display: flex; border-top: 1px solid #d0d7de; }
+    #listPane { flex: 1 1 auto; min-width: 0; overflow: auto; padding: 0 16px 24px; }
+    #sash, #viewer { display: none; }
+    body.images #listPane { flex: 0 0 auto; width: 45%; min-width: 120px; padding-right: 4px; }
+    body.images #sash {
+      display: block; flex: 0 0 6px; cursor: col-resize;
+      background: #eaeef2; border-left: 1px solid #d0d7de; border-right: 1px solid #d0d7de;
+    }
+    body.images #sash:hover, body.dragging #sash { background: #c8d1da; }
+    body.dragging { cursor: col-resize; user-select: none; }
+    body.images #viewer { display: flex; flex: 1 1 0; min-width: 120px; flex-direction: column; }
+
+    /* One row per item, trimmed to the pane width. */
     .row {
       display: flex; gap: 12px; align-items: baseline;
       padding: 3px 2px; border-bottom: 1px solid #eaeef2; white-space: nowrap;
     }
     .row:hover { background: #f6f8fa; }
+    body.images .row { cursor: pointer; }
+    .row.selected { background: #ddf4ff; }
     .row > * { overflow: hidden; text-overflow: ellipsis; }
     .num { flex: 0 0 auto; min-width: 3ch; text-align: right; color: #8c959f; font-variant-numeric: tabular-nums; }
     .text { flex: 0 1 auto; max-width: 45%; }
@@ -34,16 +57,51 @@
     }
     .url:hover { text-decoration: underline; }
     .row.hidden { display: none; }
+
+    #viewerBar {
+      flex: 0 0 auto; display: flex; gap: 12px; align-items: baseline;
+      padding: 4px 8px; border-bottom: 1px solid #eaeef2; white-space: nowrap;
+    }
+    #viewerInfo { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: #57606a; }
+    #viewerBar button { font: inherit; }
+    #stage {
+      flex: 1 1 auto; min-height: 0; overflow: auto; display: flex;
+      /* checkerboard so transparent images are visible */
+      background: #fff repeating-conic-gradient(#eef0f2 0 25%, #fff 0 50%) 0 0 / 16px 16px;
+    }
+    #stage img { margin: auto; display: block; cursor: zoom-in; }
+    #stage.fit img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    #stage:not(.fit) img { cursor: zoom-out; }
+    #stage .msg { margin: auto; color: #57606a; }
   </style>
 </head>
 <body>
-  <h1 id="title">List</h1>
-  <div id="source"></div>
-  <div class="toolbar">
-    <input id="filter" type="search" placeholder="Filter by text or URL" autofocus>
-    <span id="status"></span>
+  <header>
+    <h1 id="title">List</h1>
+    <div id="source"></div>
+    <div class="toolbar">
+      <input id="filter" type="search" placeholder="Filter by text or URL" autofocus>
+      <span class="sizeFilter" hidden>
+        <label title="Hide images whose smaller side (width or height) is below this many pixels">Min Size:
+          <input id="minSize" type="number" min="0" step="1" value="64"></label>
+        <label title="Include images whose size isn't known (not loaded yet or broken)">
+          <input id="unknown" type="checkbox" checked> Unknown</label>
+      </span>
+      <span id="status"></span>
+      <span class="hint" id="hint" hidden>↑ / ↓ to move through images · click image to zoom</span>
+    </div>
+  </header>
+  <div id="split">
+    <div id="listPane"><div id="list"></div></div>
+    <div id="sash" title="Drag to resize (double-click to reset)"></div>
+    <div id="viewer">
+      <div id="viewerBar">
+        <span id="viewerInfo">Click an image in the list to view it here.</span>
+        <button type="button" id="openTab" disabled>Open in new tab</button>
+      </div>
+      <div id="stage" class="fit"></div>
+    </div>
   </div>
-  <div id="list"></div>
   <script src="list.js"></script>
 </body>
 </html>
